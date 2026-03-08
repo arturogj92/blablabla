@@ -1,51 +1,77 @@
 <p align="center">
-  <img src="Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="128" alt="Blablabla icon">
+  <img src="Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="128" alt="Blablabla">
 </p>
 
 <h1 align="center">Blablabla</h1>
 
 <p align="center">
-  Native macOS dictation app powered by AssemblyAI real-time streaming.<br>
-  Open source. No subscriptions. Your API key, your data.
+  <strong>Talk to your Mac. It types for you.</strong><br>
+  Dictate anywhere — Slack, VS Code, ChatGPT, your terminal. No copy-paste, no window switching.<br>
+  Just hold a key and speak.
+</p>
+
+<p align="center">
+  <a href="https://www.assemblyai.com">Powered by AssemblyAI</a> · macOS 14+ · Open Source · MIT License
 </p>
 
 ---
 
-## Features
+## Why Blablabla?
 
-- **Push-to-talk** — hold your shortcut key to dictate, release to stop
-- **Locked dictation** — double-tap the shortcut to keep recording hands-free
-- **Fn key support** — optionally use the Fn key alone as push-to-talk
-- **Auto-paste** — transcript is inserted directly into whatever app has focus
-- **Multi-language** — uses AssemblyAI's multilingual model, auto-detects language
-- **Floating dock tab** — minimal waveform pill that follows your focused screen
-- **Transcript history** — searchable, paginated, with copy button
-- **Configurable sounds** — pick from 13 system sounds for start/lock/stop
-- **Local usage tracking** — sessions and duration counter
-- **Dark UI** — custom dark theme with collapsible sidebar
+You think faster than you type. Every time you switch to a chat window, draft a prompt, or write an email, you're losing time. Blablabla turns your voice into text **directly where your cursor is** — no extra apps, no browser tabs, no friction.
 
-## Screenshots
+**Send ChatGPT prompts with your voice.** Hold a key, describe what you need, release. The prompt appears in the text field ready to send. No typing, no editing, just talking.
 
-<p align="center">
-  <em>(coming soon)</em>
-</p>
+**Reply to Slack in seconds.** Hold, speak your reply, release. Done. Next conversation.
 
-## Requirements
+**Write code comments, emails, docs** — anything that has a text cursor. Blablabla pastes the transcript right there.
+
+---
+
+## Key Features
+
+**Instant dictation, zero UI**
+Hold your shortcut and talk. Release to stop. The transcript appears where your cursor is. No windows to manage, no apps to switch to.
+
+**Hands-free mode**
+Double-tap the shortcut to lock recording. Keep talking as long as you need — write long emails, describe complex prompts, think out loud. Tap again to stop.
+
+**Fn key push-to-talk**
+Enable the Fn key as an alternative trigger. One key, no modifiers. The fastest way to start dictating.
+
+**Works everywhere**
+Slack, VS Code, Terminal, ChatGPT, Notion, Safari, Mail — if it has a text field, Blablabla can type into it. Uses macOS Accessibility APIs with a clipboard fallback.
+
+**Multi-language, auto-detected**
+Speak in English, Spanish, French, German, or any of 20+ languages. No configuration needed — the model detects your language automatically.
+
+**Floating dock indicator**
+A minimal waveform pill sits above your dock. It shows when you're recording, animates your audio level, and glows when locked. Follows your active screen on multi-monitor setups.
+
+**Transcript history**
+Every dictation is saved. Search through past transcripts, copy them, or clear them. Paginated for performance.
+
+**Customizable sounds**
+Pick from 13 macOS system sounds for start, lock, and stop events. Or turn them off entirely.
+
+**Local usage tracking**
+See how many sessions you've run and total dictation time. Check your AssemblyAI dashboard for exact billing with one click.
+
+**Privacy-first**
+Your API key stays on your machine. Audio streams directly to AssemblyAI — no middleman server, no data collection, no analytics. Fully open source so you can verify.
+
+---
+
+## Get Started
+
+### Requirements
 
 - macOS 14+
 - Xcode 16+
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
-- An [AssemblyAI](https://www.assemblyai.com) API key (free tier: $50 credit + 10h/month)
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
+- Free [AssemblyAI](https://www.assemblyai.com) API key ($50 free credit on signup)
 
-## Quick start
-
-### 1. Install XcodeGen (if you don't have it)
-
-```bash
-brew install xcodegen
-```
-
-### 2. Clone and generate the project
+### Build from source
 
 ```bash
 git clone https://github.com/arturogj92/blablabla.git
@@ -53,101 +79,79 @@ cd blablabla
 xcodegen generate
 ```
 
-### 3. Build and run
-
-**Option A — Terminal:**
+**Run from Terminal:**
 
 ```bash
 xcodebuild -project Blablabla.xcodeproj -scheme Blablabla -configuration Debug build
 open ~/Library/Developer/Xcode/DerivedData/Blablabla-*/Build/Products/Debug/Blablabla.app
 ```
 
-**Option B — Xcode:**
+**Or open in Xcode:**
 
 ```bash
 open Blablabla.xcodeproj
+# Cmd+R to build and run
 ```
 
-Then hit `Cmd+R` to build and run.
-
-## First launch
+### First launch
 
 1. Paste your **AssemblyAI API key** in Settings
-2. Grant **Microphone** permission
-3. Grant **Accessibility** permission
-4. Grant **Input Monitoring** permission
-5. Restart the app after granting permissions
+2. Grant **Microphone**, **Accessibility**, and **Input Monitoring** permissions
+3. Restart the app
+4. Hold your shortcut and start talking
 
-## How it works
+---
+
+## How It Works
 
 | Action | What happens |
 |--------|-------------|
-| **Hold shortcut** | Push-to-talk — records while held, stops on release |
-| **Quick double-tap** | Locks dictation — keeps recording until you tap again |
-| **Tap while locked** | Stops recording and transcribes |
-| **Hold Fn** (if enabled) | Same as push-to-talk with the Fn key alone |
+| **Hold shortcut** | Push-to-talk — records while held, transcribes on release |
+| **Double-tap shortcut** | Locks recording — keeps going until you tap again |
+| **Hold Fn** *(optional)* | Same as push-to-talk, one key, no modifiers |
 | **Click dock pill** | Toggle recording on/off |
+| **Right-click dock pill** | Quick access to recent transcripts |
 
-The transcript is automatically pasted into the focused text field. If no editable field is found, it's saved to history.
+The default shortcut is `Option + Shift + §` (ISO Section key, next to Z on European keyboards). Fully customizable in Settings.
 
-## Default shortcut
+---
 
-`Option + Shift + § (ISO Section)`
-
-This is the key next to `Z` on ISO keyboards (common on Spanish/European Mac keyboards). You can change it in Settings > Shortcut > Record.
-
-## Project structure
+## Architecture
 
 ```
 Sources/App/
-├── AppDelegate.swift          # App lifecycle, shortcut & Fn monitors
-├── AppModel.swift             # State machine, recording logic
-├── BlablablaApp.swift         # SwiftUI entry point
-├── Models/
-│   ├── AudioDevice.swift
-│   └── TranscriptRecord.swift
+├── AppDelegate.swift              # Lifecycle, shortcut & Fn monitors
+├── AppModel.swift                 # Recording state machine
 ├── Services/
-│   ├── AssemblyAIStreamingClient.swift   # WebSocket streaming
-│   ├── AudioCaptureEngine.swift          # Mic capture (16kHz PCM)
-│   ├── FnKeyMonitor.swift               # Fn key event tap
-│   ├── GlobalShortcutMonitor.swift       # Shortcut event tap
-│   ├── PermissionManager.swift           # macOS permissions
-│   ├── SettingsStore.swift               # UserDefaults persistence
-│   ├── ShortcutFormatter.swift           # Key display helpers
-│   ├── SoundEffectPlayer.swift           # System sound playback
-│   ├── TextInsertionService.swift        # AX insertion + paste fallback
-│   ├── TranscriptStore.swift             # History persistence
-│   └── UsageTracker.swift               # Local usage stats
+│   ├── AssemblyAIStreamingClient  # Real-time WebSocket streaming
+│   ├── AudioCaptureEngine         # 16kHz mono PCM capture
+│   ├── GlobalShortcutMonitor      # CGEvent tap for shortcuts
+│   ├── FnKeyMonitor               # Fn key event monitoring
+│   ├── TextInsertionService       # AX insertion + paste fallback
+│   ├── SoundEffectPlayer          # AudioToolbox system sounds
+│   └── ...
 └── UI/
-    ├── DockTabController.swift           # Floating panel management
-    ├── DockTabView.swift                 # Dock pill + bubbles
-    ├── FloatingPanelController.swift
-    ├── FloatingPanelView.swift
-    ├── MainWindowController.swift
-    ├── MainWindowView.swift              # Settings, transcripts, permissions
-    ├── ShortcutRecorderSheet.swift
-    └── WaveformView.swift
-
-Resources/
-├── Assets.xcassets/           # App icon + logo waveform
-├── Blablabla.entitlements
-└── Info.plist
-
-project.yml                    # XcodeGen project definition
+    ├── DockTabView                # Floating waveform pill
+    ├── MainWindowView             # Settings, history, permissions
+    └── ...
 ```
 
-## Text insertion strategy
+Built with Swift, AppKit, and SwiftUI. No Electron. No web views. Native macOS from top to bottom.
 
-1. Tries **Accessibility API** direct text replacement on the focused UI element
-2. Falls back to **clipboard + simulated Cmd+V** if AX fails
-3. If no editable field is detected, saves to **transcript history**
+---
 
-## Known limitations
+## Contributing
 
-- Some secure or custom inputs reject both AX insertion and simulated paste
-- The clipboard fallback temporarily replaces clipboard content (restores it after)
-- For production distribution, token generation should move to a backend instead of using the API key directly
+Contributions are welcome! Some ideas:
+
+- **AI post-processing** — clean up transcripts with an LLM before pasting
+- **Voice commands** — "delete that", "new paragraph", "undo"
+- **Output templates** — format as bullet points, email, code comment
+- **Auto-launch at login**
+- **Whisper fallback** — offline transcription when there's no internet
+
+---
 
 ## License
 
-MIT
+MIT — use it, fork it, ship it.
