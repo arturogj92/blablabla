@@ -47,9 +47,11 @@ struct DockTabView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             // Bubbles floating up
-            ForEach(bubbles) { bubble in
-                BubbleView(bubble: bubble) {
-                    bubbles.removeAll { $0.id == bubble.id }
+            if model.settings.showWordBubbles {
+                ForEach(bubbles) { bubble in
+                    BubbleView(bubble: bubble) {
+                        bubbles.removeAll { $0.id == bubble.id }
+                    }
                 }
             }
 
@@ -58,7 +60,9 @@ struct DockTabView: View {
         }
         .frame(width: 280, height: 240, alignment: .bottom)
         .onChange(of: model.visibleTranscript) { _, newValue in
-            spawnBubbles(from: newValue)
+            if model.settings.showWordBubbles {
+                spawnBubbles(from: newValue)
+            }
         }
         .onChange(of: model.sessionState) { _, newState in
             if newState == .idle || newState == .finalizing {

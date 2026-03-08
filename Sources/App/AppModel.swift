@@ -46,6 +46,7 @@ final class AppModel: ObservableObject {
     private var pendingHideWorkItem: DispatchWorkItem?
     private var finalizationFallbackWorkItem: DispatchWorkItem?
     private var hasSubmittedTerminate = false
+    private var previousApp: NSRunningApplication?
 
     init(
         settings: SettingsStore,
@@ -261,6 +262,7 @@ final class AppModel: ObservableObject {
         sessionState = mode
         hasSubmittedTerminate = false
         recordingStartedAt = Date()
+        previousApp = NSWorkspace.shared.frontmostApplication
         showFloatingPanel?()
 
         if settings.soundEffectsEnabled {
@@ -356,16 +358,26 @@ final class AppModel: ObservableObject {
             return
         }
 
-        let inserted = insertionService.insert(finalText)
-        history.insert(TranscriptRecord(text: finalText, insertedIntoFocusedApp: inserted), at: 0)
-        transcriptStore.save(history)
+        // Restore focus to the app the user was in before recording
+        let targetApp = previousApp
+        previousApp = nil
+        if let targetApp, targetApp.bundleIdentifier != Bundle.main.bundleIdentifier {
+            targetApp.activate()
+        }
 
-        if inserted {
-            statusMessage = "Transcript pasted into the focused app"
-            scheduleFloatingPanelHide(after: 0.8)
-        } else {
-            statusMessage = "No editable field was focused. Transcript saved to history"
-            showMainWindow?()
+        // Delay to let focus settle before inserting text
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            guard let self else { return }
+            let inserted = self.insertionService.insert(finalText)
+            self.history.insert(TranscriptRecord(text: finalText, insertedIntoFocusedApp: inserted), at: 0)
+            self.transcriptStore.save(self.history)
+
+            if inserted {
+                self.statusMessage = "Transcript pasted into the focused app"
+            } else {
+                self.statusMessage = "No editable field was focused. Transcript saved to history"
+            }
+            self.scheduleFloatingPanelHide(after: 0.8)
         }
     }
 

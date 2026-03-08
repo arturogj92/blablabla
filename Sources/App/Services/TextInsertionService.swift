@@ -5,14 +5,13 @@ import Foundation
 
 final class TextInsertionService {
     func insert(_ text: String) -> Bool {
-        guard let element = focusedElement(), isProbablyEditable(element) else {
-            return false
+        if let element = focusedElement(), isProbablyEditable(element) {
+            if insertViaAccessibility(text, into: element) {
+                return true
+            }
         }
 
-        if insertViaAccessibility(text, into: element) {
-            return true
-        }
-
+        // Always fall back to pasteboard (Cmd+V) even if no editable element was found
         return insertViaPasteboard(text)
     }
 

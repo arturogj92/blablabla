@@ -406,6 +406,28 @@ struct MainWindowView: View {
                     }
                 }
             }
+
+            // Word Bubbles
+            card {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Word Bubbles")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.9))
+                        Text("Show floating word phrases while dictating")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.white.opacity(0.3))
+                    }
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { settings.showWordBubbles },
+                        set: { settings.showWordBubbles = $0 }
+                    ))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(.small)
+                }
+            }
         }
     }
 
