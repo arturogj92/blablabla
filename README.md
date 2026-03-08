@@ -13,7 +13,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/platform-macOS%2014%2B-black?style=flat-square" alt="macOS 14+">
-  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License">
+  <img src="https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-green?style=flat-square" alt="MIT + Commons Clause">
   <img src="https://img.shields.io/badge/powered%20by-AssemblyAI-blue?style=flat-square" alt="AssemblyAI">
   <img src="https://img.shields.io/badge/built%20with-Swift-orange?style=flat-square" alt="Swift">
 </p>
@@ -128,7 +128,23 @@ For most people, the free tier is more than enough. You'd need to dictate **20 m
 
 <br>
 
-## Get started in 2 minutes
+## Download
+
+Grab the latest signed & notarized build — no Xcode needed:
+
+<p align="center">
+  <a href="https://github.com/arturogj92/blablabla/releases/latest"><strong>Download latest release →</strong></a>
+</p>
+
+Unzip, drag to Applications, and you're good to go.
+
+<br>
+
+---
+
+<br>
+
+## Build from source
 
 ```bash
 # 1. Install XcodeGen if you don't have it
@@ -220,4 +236,4 @@ Blablabla is open source and contributions are welcome. Some ideas we'd love hel
 
 ## License
 
-MIT — use it, fork it, ship it.
+MIT + Commons Clause — free to use, modify, and distribute. Commercial selling restricted to the original author. See [LICENSE](LICENSE).
