@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="150" alt="Blablabla">
+  <img src="Resources/icon_squircle.png" width="150" alt="Blablabla">
 </p>
 
 <h1 align="center">Blablabla</h1>
