@@ -43,10 +43,6 @@ final class SettingsStore: ObservableObject {
         didSet { userDefaults.set(fnKeyEnabled, forKey: Keys.fnKeyEnabled) }
     }
 
-    @Published var showWordBubbles: Bool {
-        didSet { userDefaults.set(showWordBubbles, forKey: Keys.showWordBubbles) }
-    }
-
     private let userDefaults: UserDefaults
 
     init(userDefaults: UserDefaults = .standard) {
@@ -64,7 +60,6 @@ final class SettingsStore: ObservableObject {
         self.lockedRecordingSound = userDefaults.string(forKey: Keys.lockedRecordingSound) ?? "Hero"
         self.stopRecordingSound = userDefaults.string(forKey: Keys.stopRecordingSound) ?? "Pop"
         self.fnKeyEnabled = userDefaults.object(forKey: Keys.fnKeyEnabled) as? Bool ?? false
-        self.showWordBubbles = userDefaults.object(forKey: Keys.showWordBubbles) as? Bool ?? true
     }
 
     var shortcutModifierFlags: CGEventFlags {
@@ -95,5 +90,4 @@ private enum Keys {
     static let lockedRecordingSound = "settings.lockedRecordingSound"
     static let stopRecordingSound = "settings.stopRecordingSound"
     static let fnKeyEnabled = "settings.fnKeyEnabled"
-    static let showWordBubbles = "settings.showWordBubbles"
 }

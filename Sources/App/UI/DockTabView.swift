@@ -1,19 +1,8 @@
 import SwiftUI
 
-struct WordBubble: Identifiable {
-    let id = UUID()
-    let text: String
-    let xOffset: CGFloat
-    let createdAt: Date = Date()
-}
-
 struct DockTabView: View {
     @ObservedObject var model: AppModel
     var onTap: @MainActor () -> Void
-
-    @State private var bubbles: [WordBubble] = []
-    @State private var lastTranscript = ""
-    @State private var pendingWords: [String] = []
 
     private var isRecording: Bool {
         model.sessionState == .listeningPushToTalk || model.sessionState == .listeningLocked
@@ -46,41 +35,9 @@ struct DockTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Bubbles floating up
-            if model.settings.showWordBubbles {
-                ForEach(bubbles) { bubble in
-                    BubbleView(bubble: bubble) {
-                        bubbles.removeAll { $0.id == bubble.id }
-                    }
-                }
-            }
-
-            // The pill
             pillView
         }
         .frame(width: 280, height: 240, alignment: .bottom)
-        .onChange(of: model.visibleTranscript) { _, newValue in
-            if model.settings.showWordBubbles {
-                spawnBubbles(from: newValue)
-            }
-        }
-        .onChange(of: model.sessionState) { _, newState in
-            if newState == .idle || newState == .finalizing {
-                // Flush any remaining pending words as a final bubble
-                if !pendingWords.isEmpty {
-                    let chunk = pendingWords.joined(separator: " ")
-                    pendingWords.removeAll()
-                    let xOffset = CGFloat.random(in: -20...20)
-                    let bubble = WordBubble(text: chunk, xOffset: xOffset)
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        bubbles.append(bubble)
-                    }
-                }
-                if newState == .idle {
-                    lastTranscript = ""
-                }
-            }
-        }
     }
 
     private var pillView: some View {
@@ -129,36 +86,6 @@ struct DockTabView: View {
         .animation(.easeInOut(duration: 0.3), value: isFinalizing)
     }
 
-    private func spawnBubbles(from transcript: String) {
-        let newPortion: String
-        if transcript.count > lastTranscript.count,
-           transcript.hasPrefix(lastTranscript) || lastTranscript.isEmpty {
-            let start = transcript.index(transcript.startIndex, offsetBy: lastTranscript.count)
-            newPortion = String(transcript[start...]).trimmingCharacters(in: .whitespacesAndNewlines)
-        } else if transcript != lastTranscript {
-            newPortion = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            return
-        }
-        lastTranscript = transcript
-
-        guard !newPortion.isEmpty else { return }
-
-        let newWords = newPortion.split(separator: " ").map(String.init)
-        pendingWords.append(contentsOf: newWords)
-
-        // Wait until we have enough words for a fuller phrase (8-12 words)
-        while pendingWords.count >= 8 {
-            let chunkSize = min(Int.random(in: 8...12), pendingWords.count)
-            let chunk = pendingWords[0..<chunkSize].joined(separator: " ")
-            pendingWords.removeFirst(chunkSize)
-            let xOffset = CGFloat.random(in: -20...20)
-            let bubble = WordBubble(text: chunk, xOffset: xOffset)
-            withAnimation(.easeOut(duration: 0.3)) {
-                bubbles.append(bubble)
-            }
-        }
-    }
 }
 
 struct IdleWaveView: View {
@@ -211,46 +138,3 @@ struct IdleWaveView: View {
     }
 }
 
-struct BubbleView: View {
-    let bubble: WordBubble
-    let onComplete: () -> Void
-
-    @State private var offsetY: CGFloat = 0
-    @State private var opacity: Double = 0
-    @State private var scale: CGFloat = 0.85
-
-    var body: some View {
-        Text(bubble.text)
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(.white.opacity(0.85))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(Color.white.opacity(0.08))
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
-                    )
-            )
-            .scaleEffect(scale)
-            .opacity(opacity)
-            .offset(x: bubble.xOffset, y: offsetY)
-            .onAppear {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                    opacity = 1
-                    scale = 1
-                    offsetY = -30
-                }
-                withAnimation(.easeOut(duration: 2.5).delay(0.4)) {
-                    offsetY = -90
-                }
-                withAnimation(.easeIn(duration: 0.8).delay(2.0)) {
-                    opacity = 0
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                    onComplete()
-                }
-            }
-    }
-}
