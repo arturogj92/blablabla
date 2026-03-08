@@ -93,7 +93,7 @@ final class AssemblyAIStreamingClient {
         components.queryItems = [
             URLQueryItem(name: "sample_rate", value: "16000"),
             URLQueryItem(name: "encoding", value: "pcm_s16le"),
-            URLQueryItem(name: "speech_model", value: "universal-streaming-multilingual"),
+            URLQueryItem(name: "speech_model", value: "u3-rt-pro"),
             URLQueryItem(name: "token", value: token)
         ]
 
