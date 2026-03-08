@@ -70,7 +70,7 @@ struct DockTabView: View {
                 if !pendingWords.isEmpty {
                     let chunk = pendingWords.joined(separator: " ")
                     pendingWords.removeAll()
-                    let xOffset = CGFloat.random(in: -40...40)
+                    let xOffset = CGFloat.random(in: -20...20)
                     let bubble = WordBubble(text: chunk, xOffset: xOffset)
                     withAnimation(.easeOut(duration: 0.3)) {
                         bubbles.append(bubble)
@@ -147,12 +147,12 @@ struct DockTabView: View {
         let newWords = newPortion.split(separator: " ").map(String.init)
         pendingWords.append(contentsOf: newWords)
 
-        // Wait until we have enough words for a decent phrase (4-7 words)
-        while pendingWords.count >= 4 {
-            let chunkSize = min(Int.random(in: 4...7), pendingWords.count)
+        // Wait until we have enough words for a fuller phrase (8-12 words)
+        while pendingWords.count >= 8 {
+            let chunkSize = min(Int.random(in: 8...12), pendingWords.count)
             let chunk = pendingWords[0..<chunkSize].joined(separator: " ")
             pendingWords.removeFirst(chunkSize)
-            let xOffset = CGFloat.random(in: -40...40)
+            let xOffset = CGFloat.random(in: -20...20)
             let bubble = WordBubble(text: chunk, xOffset: xOffset)
             withAnimation(.easeOut(duration: 0.3)) {
                 bubbles.append(bubble)
@@ -217,49 +217,38 @@ struct BubbleView: View {
 
     @State private var offsetY: CGFloat = 0
     @State private var opacity: Double = 0
-    @State private var scale: CGFloat = 0.6
+    @State private var scale: CGFloat = 0.85
 
     var body: some View {
         Text(bubble.text)
-            .font(.system(size: 12, weight: .semibold, design: .rounded))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.white.opacity(0.85))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(.ultraThinMaterial)
+                    .fill(Color.white.opacity(0.08))
                     .overlay(
                         Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.0, green: 0.7, blue: 0.9).opacity(0.3),
-                                        Color(red: 0.9, green: 0.3, blue: 0.6).opacity(0.3)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
                     )
-                    .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
             )
             .scaleEffect(scale)
             .opacity(opacity)
             .offset(x: bubble.xOffset, y: offsetY)
             .onAppear {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                     opacity = 1
                     scale = 1
-                    offsetY = -40
+                    offsetY = -30
                 }
-                withAnimation(.easeOut(duration: 2.0).delay(0.3)) {
-                    offsetY = -180
+                withAnimation(.easeOut(duration: 2.5).delay(0.4)) {
+                    offsetY = -90
                 }
-                withAnimation(.easeIn(duration: 0.6).delay(1.6)) {
+                withAnimation(.easeIn(duration: 0.8).delay(2.0)) {
                     opacity = 0
-                    scale = 0.8
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.4) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                     onComplete()
                 }
             }
