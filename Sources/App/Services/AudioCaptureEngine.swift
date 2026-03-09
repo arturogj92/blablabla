@@ -2,6 +2,22 @@ import AVFoundation
 import CoreAudio
 import Foundation
 
+// C callback for CoreAudio property listener — must be a free function
+private func audioDevicesChanged(
+    _ objectID: AudioObjectID,
+    _ numberAddresses: UInt32,
+    _ addresses: UnsafePointer<AudioObjectPropertyAddress>,
+    _ clientData: UnsafeMutableRawPointer?
+) -> OSStatus {
+    guard let clientData else { return noErr }
+    let engine = Unmanaged<AudioCaptureEngine>.fromOpaque(clientData).takeUnretainedValue()
+    // Small delay to let macOS finish the audio route switch
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        engine.handleDeviceChange()
+    }
+    return noErr
+}
+
 final class AudioCaptureEngine {
     var onAudioData: ((Data) -> Void)?
     var onAudioLevel: ((Float) -> Void)?
@@ -11,16 +27,159 @@ final class AudioCaptureEngine {
     private var outputFormat: AVAudioFormat?
     private var isEngineRunning = false
     private var isCapturing = false
+    private var currentDeviceUID: String?
+    private var listenersInstalled = false
+    private var selfPointer: UnsafeMutableRawPointer?
+
+    deinit {
+        removeDeviceChangeListeners()
+    }
 
     /// Call once at app launch to start the engine silently.
     /// The engine stays running forever — no audio disruption.
     func prepare(deviceUID: String? = nil) {
         guard !isEngineRunning else { return }
 
+        currentDeviceUID = deviceUID
+
         if let uid = deviceUID {
             setInputDevice(uid: uid)
         }
 
+        installTapAndConverter()
+
+        engine.prepare()
+        try? engine.start()
+        isEngineRunning = true
+
+        installDeviceChangeListeners()
+    }
+
+    /// Start sending audio data. Engine must already be running via prepare().
+    func start(deviceUID: String? = nil) throws {
+        if !isEngineRunning {
+            prepare(deviceUID: deviceUID)
+        } else if let uid = deviceUID, uid != currentDeviceUID {
+            currentDeviceUID = uid
+            reinitialize()
+        }
+        isCapturing = true
+    }
+
+    /// Stop sending audio data. Engine keeps running silently.
+    func stop() {
+        isCapturing = false
+    }
+
+    // MARK: - Device change handling
+
+    fileprivate func handleDeviceChange() {
+        let wasCapturing = isCapturing
+        reinitialize()
+        if wasCapturing {
+            isCapturing = true
+        }
+    }
+
+    private func installDeviceChangeListeners() {
+        guard !listenersInstalled else { return }
+        listenersInstalled = true
+
+        selfPointer = Unmanaged.passUnretained(self).toOpaque()
+
+        // Listen for default input device changes
+        var defaultInputAddr = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultInputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        AudioObjectAddPropertyListener(
+            AudioObjectID(kAudioObjectSystemObject),
+            &defaultInputAddr,
+            audioDevicesChanged,
+            selfPointer
+        )
+
+        // Listen for device list changes (connect/disconnect)
+        var devicesAddr = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDevices,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        AudioObjectAddPropertyListener(
+            AudioObjectID(kAudioObjectSystemObject),
+            &devicesAddr,
+            audioDevicesChanged,
+            selfPointer
+        )
+
+        // Also listen for AVAudioEngine configuration changes as backup
+        NotificationCenter.default.addObserver(
+            forName: .AVAudioEngineConfigurationChange,
+            object: engine,
+            queue: nil
+        ) { [weak self] _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self?.handleDeviceChange()
+            }
+        }
+    }
+
+    private func removeDeviceChangeListeners() {
+        guard listenersInstalled, let ptr = selfPointer else { return }
+
+        var defaultInputAddr = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultInputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        AudioObjectRemovePropertyListener(
+            AudioObjectID(kAudioObjectSystemObject),
+            &defaultInputAddr,
+            audioDevicesChanged,
+            ptr
+        )
+
+        var devicesAddr = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDevices,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        AudioObjectRemovePropertyListener(
+            AudioObjectID(kAudioObjectSystemObject),
+            &devicesAddr,
+            audioDevicesChanged,
+            ptr
+        )
+
+        NotificationCenter.default.removeObserver(self, name: .AVAudioEngineConfigurationChange, object: engine)
+
+        listenersInstalled = false
+        selfPointer = nil
+    }
+
+    private func reinitialize() {
+        isCapturing = false
+
+        engine.inputNode.removeTap(onBus: 0)
+
+        if isEngineRunning {
+            engine.stop()
+            isEngineRunning = false
+        }
+
+        if let uid = currentDeviceUID {
+            setInputDevice(uid: uid)
+        }
+
+        installTapAndConverter()
+
+        engine.prepare()
+        try? engine.start()
+        isEngineRunning = true
+    }
+
+    private func installTapAndConverter() {
         let inputNode = engine.inputNode
         let inputFormat = inputNode.inputFormat(forBus: 0)
         let outputFormat = AVAudioFormat(
@@ -39,23 +198,6 @@ final class AudioCaptureEngine {
             self.computeAudioLevel(buffer: buffer)
             self.handle(buffer: buffer)
         }
-
-        engine.prepare()
-        try? engine.start()
-        isEngineRunning = true
-    }
-
-    /// Start sending audio data. Engine must already be running via prepare().
-    func start(deviceUID: String? = nil) throws {
-        if !isEngineRunning {
-            prepare(deviceUID: deviceUID)
-        }
-        isCapturing = true
-    }
-
-    /// Stop sending audio data. Engine keeps running silently.
-    func stop() {
-        isCapturing = false
     }
 
     private func setInputDevice(uid: String) {
