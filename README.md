@@ -47,15 +47,17 @@ That's it. That's the app.
 
 <br>
 
-## See it in action
+## Vibe coding at the speed of thought
 
-| Use case | How it works |
-|----------|-------------|
-| **ChatGPT prompt** | Hold key → describe your prompt → release → it's in the text box, hit Enter |
-| **Slack reply** | Hold key → say your reply → release → sent in 3 seconds instead of 30 |
-| **Code comment** | Hold key → explain the function → release → comment appears inline |
-| **Email draft** | Double-tap to lock → talk for 2 minutes → tap to stop → entire email written |
-| **Terminal command** | Hold key → "git commit -m fix auth bug" → release → it's there |
+You're building with Cursor, Claude Code, Copilot, ChatGPT — and your bottleneck is **typing prompts**.
+
+You know exactly what you want the AI to do. You can explain it in 5 seconds. But typing it out takes 30. So you write shorter prompts. Lazier prompts. Worse prompts.
+
+**With Blablabla, you just talk.**
+
+Hold a key → describe what you want → release → your prompt is in the text box. Hit Enter. Next prompt. Hold key. Talk. Release. Enter. Again. Again. Again.
+
+You'll send more prompts in 10 minutes than you used to send in an hour. Your AI gets better instructions because you're not too lazy to explain context. You iterate faster. You vibe harder.
 
 <br>
 
