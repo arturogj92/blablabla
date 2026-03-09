@@ -16,20 +16,32 @@ struct DockTabView: View {
         model.sessionState == .listeningLocked
     }
 
+    private var isError: Bool {
+        if case .error = model.sessionState { return true }
+        return false
+    }
+
     private var isActive: Bool {
         isRecording || isFinalizing
     }
 
+    private var isExpanded: Bool {
+        isActive || isError
+    }
+
+    private var errorMessage: String? {
+        if case .error(let msg) = model.sessionState { return msg }
+        return nil
+    }
+
+    private let darkPill = AnyShapeStyle(Color(red: 0.05, green: 0.05, blue: 0.07).opacity(0.97))
+
     private var pillFill: AnyShapeStyle {
         switch model.sessionState {
-        case .listeningPushToTalk, .listeningLocked:
-            return AnyShapeStyle(Color(red: 0.05, green: 0.05, blue: 0.07).opacity(0.97))
-        case .finalizing:
-            return AnyShapeStyle(Color(red: 0.05, green: 0.05, blue: 0.07).opacity(0.97))
         case .error:
-            return AnyShapeStyle(Color.red.opacity(0.85))
+            return AnyShapeStyle(Color(red: 0.85, green: 0.15, blue: 0.15).opacity(0.95))
         default:
-            return AnyShapeStyle(Color(red: 0.05, green: 0.05, blue: 0.07).opacity(0.97))
+            return darkPill
         }
     }
 
@@ -41,8 +53,19 @@ struct DockTabView: View {
     }
 
     private var pillView: some View {
-        ZStack {
-            if isRecording {
+        HStack(spacing: 6) {
+            if isError {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white)
+                if let msg = errorMessage {
+                    Text(msg)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.95))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+            } else if isRecording {
                 WaveformView(
                     level: model.audioLevel,
                     style: .wave
@@ -54,8 +77,8 @@ struct DockTabView: View {
                 IdleWaveView()
             }
         }
-        .frame(width: isActive ? 52 : 40, height: 18)
-        .padding(.horizontal, 8)
+        .frame(width: isError ? nil : (isActive ? 52 : 40), height: 18)
+        .padding(.horizontal, isError ? 10 : 8)
         .padding(.vertical, 5)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -72,18 +95,22 @@ struct DockTabView: View {
                                     startPoint: .leading,
                                     endPoint: .trailing
                                   ))
-                                : AnyShapeStyle(.white.opacity(0.1)),
+                                : isError
+                                    ? AnyShapeStyle(Color.white.opacity(0.2))
+                                    : AnyShapeStyle(.white.opacity(0.1)),
                             lineWidth: isLocked ? 1 : 0.5
                         )
                 )
                 .shadow(color: .black.opacity(0.3), radius: 8, y: 3)
         )
+        .frame(maxWidth: isError ? 260 : nil)
         .contentShape(RoundedRectangle(cornerRadius: 8))
         .onTapGesture { onTap() }
         .animation(.easeInOut(duration: 0.3), value: isActive)
         .animation(.easeInOut(duration: 0.3), value: isRecording)
         .animation(.easeInOut(duration: 0.3), value: isLocked)
         .animation(.easeInOut(duration: 0.3), value: isFinalizing)
+        .animation(.easeInOut(duration: 0.3), value: isError)
     }
 
 }
