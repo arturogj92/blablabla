@@ -37,6 +37,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         settings.$shortcutKeyCode
             .combineLatest(settings.$shortcutModifierFlagsRawValue)
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _, _ in
                 self?.rebuildShortcutMonitor()
             }

@@ -31,6 +31,15 @@ final class GlobalShortcutMonitor {
             callback: { _, type, event, refcon in
                 guard let refcon else { return Unmanaged.passUnretained(event) }
                 let monitor = Unmanaged<GlobalShortcutMonitor>.fromOpaque(refcon).takeUnretainedValue()
+
+                // Re-enable tap if macOS disabled it (timeout or user input)
+                if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                    if let tap = monitor.eventTap {
+                        CGEvent.tapEnable(tap: tap, enable: true)
+                    }
+                    return Unmanaged.passUnretained(event)
+                }
+
                 let consumed = monitor.handle(event: event, type: type)
                 return consumed ? nil : Unmanaged.passUnretained(event)
             },
