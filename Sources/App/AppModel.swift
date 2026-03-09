@@ -95,10 +95,8 @@ final class AppModel: ObservableObject {
             self?.refreshPermissions()
         }
 
-        // Pre-prepare audio engine at launch so recording starts instantly
-        if permissions.currentStatus().microphoneGranted {
-            audioCapture.prepare(deviceUID: settings.selectedMicrophoneUID)
-        }
+        // Audio engine now starts on-demand when recording begins,
+        // so macOS doesn't show the microphone indicator at all times.
     }
 
     func refreshPermissions() {

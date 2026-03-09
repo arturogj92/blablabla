@@ -35,40 +35,46 @@ final class AudioCaptureEngine {
         removeDeviceChangeListeners()
     }
 
-    /// Call once at app launch to start the engine silently.
-    /// The engine stays running forever — no audio disruption.
-    func prepare(deviceUID: String? = nil) {
-        guard !isEngineRunning else { return }
+    /// Start the audio engine and begin sending audio data.
+    func start(deviceUID: String? = nil) throws {
+        let uid = deviceUID ?? currentDeviceUID
+        currentDeviceUID = uid
 
-        currentDeviceUID = deviceUID
+        if isEngineRunning {
+            if uid != currentDeviceUID {
+                reinitialize()
+            }
+            isCapturing = true
+            return
+        }
 
-        if let uid = deviceUID {
+        if let uid {
             setInputDevice(uid: uid)
         }
 
         installTapAndConverter()
 
         engine.prepare()
-        try? engine.start()
+        try engine.start()
         isEngineRunning = true
+        isCapturing = true
 
         installDeviceChangeListeners()
     }
 
-    /// Start sending audio data. Engine must already be running via prepare().
-    func start(deviceUID: String? = nil) throws {
-        if !isEngineRunning {
-            prepare(deviceUID: deviceUID)
-        } else if let uid = deviceUID, uid != currentDeviceUID {
-            currentDeviceUID = uid
-            reinitialize()
-        }
-        isCapturing = true
-    }
-
-    /// Stop sending audio data. Engine keeps running silently.
+    /// Stop sending audio data and release the microphone.
     func stop() {
         isCapturing = false
+
+        engine.inputNode.removeTap(onBus: 0)
+
+        if isEngineRunning {
+            engine.stop()
+            isEngineRunning = false
+        }
+
+        converter = nil
+        outputFormat = nil
     }
 
     // MARK: - Device change handling

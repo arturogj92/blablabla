@@ -30,6 +30,7 @@ struct MainWindowView: View {
     @State private var searchText = ""
     @State private var displayLimit = 10
     @State private var sidebarCollapsed = false
+    @State private var isEditingAPIKey = false
     @ObservedObject private var usageTracker = UsageTracker.shared
 
     private enum SidebarTab: String, CaseIterable, Identifiable {
@@ -46,6 +47,20 @@ struct MainWindowView: View {
             case .permissions: "lock.shield"
             }
         }
+    }
+
+    private func refreshMicrophoneList() {
+        availableDevices = AudioDevice.inputDevices()
+        if let uid = settings.selectedMicrophoneUID,
+           !availableDevices.contains(where: { $0.uid == uid }) {
+            settings.selectedMicrophoneUID = nil
+        }
+    }
+
+    private var maskedAPIKey: String {
+        let key = settings.assemblyAIKey
+        if key.count <= 8 { return String(repeating: "\u{2022}", count: key.count) }
+        return key.prefix(4) + String(repeating: "\u{2022}", count: key.count - 8) + key.suffix(4)
     }
 
     private var filteredHistory: [TranscriptRecord] {
@@ -250,16 +265,45 @@ struct MainWindowView: View {
                     Text("AssemblyAI API Key")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.9))
-                    SecureField("Paste your AssemblyAI key", text: Binding(
-                        get: { settings.assemblyAIKey },
-                        set: { settings.assemblyAIKey = $0 }
-                    ))
-                    .textFieldStyle(.plain)
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color.surfaceInput)
-                    )
+
+                    if settings.assemblyAIKey.isEmpty || isEditingAPIKey {
+                        SecureField("Paste your AssemblyAI key", text: Binding(
+                            get: { settings.assemblyAIKey },
+                            set: { settings.assemblyAIKey = $0 }
+                        ))
+                        .textFieldStyle(.plain)
+                        .padding(8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.surfaceInput)
+                        )
+
+                        if isEditingAPIKey && !settings.assemblyAIKey.isEmpty {
+                            HStack {
+                                Spacer()
+                                Button("Done") { isEditingAPIKey = false }
+                                    .controlSize(.small)
+                            }
+                        }
+                    } else {
+                        HStack(spacing: 10) {
+                            HStack(spacing: 4) {
+                                Text(maskedAPIKey)
+                                    .font(.system(size: 13, design: .monospaced))
+                                    .foregroundStyle(.white.opacity(0.5))
+                            }
+                            .padding(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.surfaceInput)
+                            )
+
+                            Button("Edit") { isEditingAPIKey = true }
+                                .controlSize(.small)
+                        }
+                    }
+
                     Text("[Get a free API key at assemblyai.com](https://www.assemblyai.com/dashboard)")
                         .font(.system(size: 11))
                         .foregroundStyle(.white.opacity(0.3))
@@ -356,11 +400,11 @@ struct MainWindowView: View {
                             }
                         }
                         .labelsHidden()
-                        Button("Refresh") { availableDevices = AudioDevice.inputDevices() }
+                        Button("Refresh") { refreshMicrophoneList() }
                     }
                 }
             }
-            .onAppear { availableDevices = AudioDevice.inputDevices() }
+            .onAppear { refreshMicrophoneList() }
 
             // Sounds
             card {
