@@ -293,12 +293,13 @@ final class AppModel: ObservableObject {
 
         pendingStopWorkItem?.cancel()
         pendingStopWorkItem = nil
-        audioCapture.stop()
-        audioLevel = 0
 
         if settings.soundEffectsEnabled {
             soundPlayer.play(.recordingStopped, soundName: settings.stopRecordingSound)
         }
+
+        audioCapture.stop()
+        audioLevel = 0
 
         sessionState = .finalizing
         statusMessage = "Finalizing transcript"

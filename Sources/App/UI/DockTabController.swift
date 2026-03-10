@@ -2,6 +2,12 @@ import AppKit
 import Combine
 import SwiftUI
 
+// Panel subclass that never steals focus — dragging won't activate the app
+private class NonActivatingPanel: NSPanel {
+    override var canBecomeKey: Bool { false }
+    override var canBecomeMain: Bool { false }
+}
+
 @MainActor
 final class DockTabController {
     private let panel: NSPanel
@@ -13,6 +19,8 @@ final class DockTabController {
     private var localMouseMonitor: Any?
     private var currentScreenID: CGDirectDisplayID?
     private var cancellables: Set<AnyCancellable> = []
+    /// True while we're programmatically repositioning — ignore didMove saves
+    private var isRepositioning = false
 
     @MainActor init(model: AppModel, settings: SettingsStore) {
         self.model = model
@@ -23,7 +31,7 @@ final class DockTabController {
         )
         hostingController = NSHostingController(rootView: tabView)
 
-        panel = NSPanel(
+        panel = NonActivatingPanel(
             contentRect: NSRect(x: 0, y: 0, width: 300, height: 120),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
@@ -45,10 +53,12 @@ final class DockTabController {
         setupRightClickMonitor()
         setupScreenFollowing()
 
-        // Save position when user drags the panel
+        // Save position when user drags the panel (not programmatic moves)
         NotificationCenter.default.publisher(for: NSWindow.didMoveNotification, object: panel)
             .sink { [weak self] _ in
-                guard let self, self.settings.floatingPanelFreePosition else { return }
+                guard let self,
+                      !self.isRepositioning,
+                      self.settings.floatingPanelFreePosition else { return }
                 self.settings.floatingPanelX = self.panel.frame.origin.x
                 self.settings.floatingPanelY = self.panel.frame.origin.y
             }
@@ -73,7 +83,14 @@ final class DockTabController {
         panel.orderFrontRegardless()
     }
 
+    func hide() {
+        panel.orderOut(nil)
+    }
+
     func reposition() {
+        isRepositioning = true
+        defer { isRepositioning = false }
+
         // If free positioning is on and we have saved coordinates, use them
         if settings.floatingPanelFreePosition,
            let savedX = settings.floatingPanelX,
@@ -119,8 +136,9 @@ final class DockTabController {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            guard let self, !self.settings.floatingPanelFreePosition else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self?.reposition()
+                self.reposition()
             }
         }
     }

@@ -43,6 +43,10 @@ final class SettingsStore: ObservableObject {
         didSet { userDefaults.set(fnKeyEnabled, forKey: Keys.fnKeyEnabled) }
     }
 
+    @Published var showIndicatorOnlyWhenRecording: Bool {
+        didSet { userDefaults.set(showIndicatorOnlyWhenRecording, forKey: Keys.showIndicatorOnlyWhenRecording) }
+    }
+
     @Published var floatingPanelFreePosition: Bool {
         didSet { userDefaults.set(floatingPanelFreePosition, forKey: Keys.floatingPanelFreePosition) }
     }
@@ -78,6 +82,7 @@ final class SettingsStore: ObservableObject {
         self.lockedRecordingSound = userDefaults.string(forKey: Keys.lockedRecordingSound) ?? "Hero"
         self.stopRecordingSound = userDefaults.string(forKey: Keys.stopRecordingSound) ?? "Pop"
         self.fnKeyEnabled = userDefaults.object(forKey: Keys.fnKeyEnabled) as? Bool ?? false
+        self.showIndicatorOnlyWhenRecording = userDefaults.object(forKey: Keys.showIndicatorOnlyWhenRecording) as? Bool ?? false
         self.floatingPanelFreePosition = userDefaults.object(forKey: Keys.floatingPanelFreePosition) as? Bool ?? false
         self.floatingPanelX = userDefaults.object(forKey: Keys.floatingPanelX) as? Double
         self.floatingPanelY = userDefaults.object(forKey: Keys.floatingPanelY) as? Double
@@ -116,6 +121,7 @@ private enum Keys {
     static let lockedRecordingSound = "settings.lockedRecordingSound"
     static let stopRecordingSound = "settings.stopRecordingSound"
     static let fnKeyEnabled = "settings.fnKeyEnabled"
+    static let showIndicatorOnlyWhenRecording = "settings.showIndicatorOnlyWhenRecording"
     static let floatingPanelFreePosition = "settings.floatingPanelFreePosition"
     static let floatingPanelX = "settings.floatingPanelX"
     static let floatingPanelY = "settings.floatingPanelY"

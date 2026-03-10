@@ -454,16 +454,37 @@ struct MainWindowView: View {
             // Floating Panel
             card {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Floating Panel Position")
+                    Text("Recording Indicator")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.9))
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Show only when recording")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.7))
+                            Text("Hide the indicator when idle, show it during recording")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.3))
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { settings.showIndicatorOnlyWhenRecording },
+                            set: { settings.showIndicatorOnlyWhenRecording = $0 }
+                        ))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                    }
+
+                    Divider().opacity(0.3)
 
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Allow free positioning")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.white.opacity(0.7))
-                            Text("Drag the recording indicator anywhere on screen")
+                            Text("Drag the indicator anywhere on screen")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.white.opacity(0.3))
                         }

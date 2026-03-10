@@ -26,10 +26,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         dockTabController = DockTabController(model: model, settings: settings)
         model.showMainWindow = { [weak self] in self?.presentMainWindow() }
         model.showFloatingPanel = { [weak self] in
-            self?.dockTabController.reposition()
+            guard let self else { return }
+            if self.model.settings.showIndicatorOnlyWhenRecording {
+                self.dockTabController.show()
+            } else {
+                self.dockTabController.reposition()
+            }
         }
         model.hideFloatingPanel = { [weak self] in
-            self?.dockTabController.reposition()
+            guard let self else { return }
+            if self.model.settings.showIndicatorOnlyWhenRecording {
+                self.dockTabController.hide()
+            } else {
+                self.dockTabController.reposition()
+            }
         }
 
         rebuildShortcutMonitor()
@@ -50,6 +60,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.rebuildFnKeyMonitor(enabled: enabled)
             }
             .store(in: &cancellables)
+
+        settings.$showIndicatorOnlyWhenRecording
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] onlyWhenRecording in
+                guard let self else { return }
+                let isRecording = self.model.sessionState != .idle
+                if onlyWhenRecording && !isRecording {
+                    self.dockTabController.hide()
+                } else if !onlyWhenRecording {
+                    self.dockTabController.show()
+                }
+            }
+            .store(in: &cancellables)
+
+        // Hide indicator immediately when recording ends (don't wait for delayed callback)
+        model.$sessionState
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                guard let self, self.model.settings.showIndicatorOnlyWhenRecording else { return }
+                switch state {
+                case .listeningPushToTalk, .listeningLocked:
+                    break
+                case .idle, .finalizing, .error:
+                    self.dockTabController.hide()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -58,7 +97,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         fnKeyMonitor?.start()
         configureStatusItem()
         model.refreshPermissions()
-        dockTabController.show()
+        if !model.settings.showIndicatorOnlyWhenRecording {
+            dockTabController.show()
+        }
         presentMainWindow()
     }
 
