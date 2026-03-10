@@ -1,17 +1,22 @@
 import AppKit
+import Combine
 import SwiftUI
 
+@MainActor
 final class DockTabController {
     private let panel: NSPanel
     private let hostingController: NSHostingController<DockTabView>
     private weak var model: AppModel?
+    private let settings: SettingsStore
 
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
     private var currentScreenID: CGDirectDisplayID?
+    private var cancellables: Set<AnyCancellable> = []
 
-    @MainActor init(model: AppModel) {
+    @MainActor init(model: AppModel, settings: SettingsStore) {
         self.model = model
+        self.settings = settings
         let tabView = DockTabView(
             model: model,
             onTap: { @MainActor in model.toggleRecording() }
@@ -34,10 +39,33 @@ final class DockTabController {
         panel.hidesOnDeactivate = false
         panel.worksWhenModal = true
         panel.ignoresMouseEvents = true
+        panel.isMovableByWindowBackground = settings.floatingPanelFreePosition
 
         setupMouseTracking()
         setupRightClickMonitor()
         setupScreenFollowing()
+
+        // Save position when user drags the panel
+        NotificationCenter.default.publisher(for: NSWindow.didMoveNotification, object: panel)
+            .sink { [weak self] _ in
+                guard let self, self.settings.floatingPanelFreePosition else { return }
+                self.settings.floatingPanelX = self.panel.frame.origin.x
+                self.settings.floatingPanelY = self.panel.frame.origin.y
+            }
+            .store(in: &cancellables)
+
+        // React to toggle changes
+        settings.$floatingPanelFreePosition
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] enabled in
+                guard let self else { return }
+                self.panel.isMovableByWindowBackground = enabled
+                if !enabled {
+                    self.reposition()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func show() {
@@ -46,6 +74,16 @@ final class DockTabController {
     }
 
     func reposition() {
+        // If free positioning is on and we have saved coordinates, use them
+        if settings.floatingPanelFreePosition,
+           let savedX = settings.floatingPanelX,
+           let savedY = settings.floatingPanelY {
+            let width: CGFloat = 300
+            let height: CGFloat = 250
+            panel.setFrame(NSRect(x: savedX, y: savedY, width: width, height: height), display: true)
+            return
+        }
+
         let screen = focusedScreen()
         let width: CGFloat = 300
         let height: CGFloat = 250
@@ -88,6 +126,9 @@ final class DockTabController {
     }
 
     private func checkScreenChange() {
+        // Don't auto-follow screens when free positioning is on
+        guard !settings.floatingPanelFreePosition else { return }
+
         let screen = focusedScreen()
         let screenID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
         if screenID != currentScreenID {

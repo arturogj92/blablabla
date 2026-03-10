@@ -23,7 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         super.init()
 
-        dockTabController = DockTabController(model: model)
+        dockTabController = DockTabController(model: model, settings: settings)
         model.showMainWindow = { [weak self] in self?.presentMainWindow() }
         model.showFloatingPanel = { [weak self] in
             self?.dockTabController.reposition()

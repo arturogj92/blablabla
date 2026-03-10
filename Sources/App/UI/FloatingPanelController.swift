@@ -34,7 +34,7 @@ final class FloatingPanelController {
         let width = panel.frame.width
         let height = panel.frame.height
         let x = screen.visibleFrame.midX - (width / 2)
-        let y = screen.visibleFrame.minY + 38
+        let y = screen.visibleFrame.minY + 12
 
         panel.alphaValue = 0
         panel.setFrame(NSRect(x: x, y: y - 20, width: width, height: height), display: true)
