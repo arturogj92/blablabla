@@ -360,24 +360,63 @@ final class AppModel: ObservableObject {
         // Restore focus to the app the user was in before recording
         let targetApp = previousApp
         previousApp = nil
+        debugLog("finalizeTranscript: targetApp=\(targetApp?.localizedName ?? "nil"), text length=\(finalText.count)")
         if let targetApp, targetApp.bundleIdentifier != Bundle.main.bundleIdentifier {
             targetApp.activate()
         }
 
-        // Delay to let focus settle before inserting text
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-            guard let self else { return }
-            let inserted = self.insertionService.insert(finalText)
-            self.history.insert(TranscriptRecord(text: finalText, insertedIntoFocusedApp: inserted), at: 0)
-            self.transcriptStore.save(self.history)
+        // Poll until the target app is frontmost (or timeout after ~500ms)
+        // before inserting text — a fixed delay wasn't always enough.
+        func attemptInsert(remainingAttempts: Int) {
+            let frontApp = NSWorkspace.shared.frontmostApplication
+            let isFront = targetApp == nil
+                || targetApp?.bundleIdentifier == Bundle.main.bundleIdentifier
+                || frontApp?.processIdentifier == targetApp?.processIdentifier
+            self.debugLog("attemptInsert: remaining=\(remainingAttempts), isFront=\(isFront), frontApp=\(frontApp?.localizedName ?? "nil")")
 
-            if inserted {
-                self.statusMessage = "Transcript pasted into the focused app"
-            } else {
-                self.statusMessage = "No editable field was focused. Transcript saved to history"
+            guard isFront || remainingAttempts <= 0 else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    attemptInsert(remainingAttempts: remainingAttempts - 1)
+                }
+                return
             }
-            self.scheduleFloatingPanelHide(after: 0.8)
+
+            // Let the window system fully settle focus on the text field
+            // before injecting text — the app being frontmost isn't enough.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                self.performInsertion(finalText)
+            }
         }
+
+        // Start polling after a short initial delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            attemptInsert(remainingAttempts: 10)
+        }
+    }
+
+    private func performInsertion(_ finalText: String) {
+        let inserted = insertionService.insert(finalText)
+
+        // Always copy to clipboard as fallback when enabled
+        if settings.clipboardOnly {
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(finalText, forType: .string)
+        }
+
+        history.insert(TranscriptRecord(text: finalText, insertedIntoFocusedApp: inserted), at: 0)
+        transcriptStore.save(history)
+
+        if inserted && settings.clipboardOnly {
+            statusMessage = "Pasted & copied to clipboard"
+        } else if inserted {
+            statusMessage = "Transcript pasted into the focused app"
+        } else if settings.clipboardOnly {
+            statusMessage = "Copied to clipboard"
+        } else {
+            statusMessage = "No editable field was focused. Transcript saved to history"
+        }
+        scheduleFloatingPanelHide(after: 0.8)
     }
 
     private func fail(with message: String) {
@@ -403,5 +442,16 @@ final class AppModel: ObservableObject {
     private func cancelPendingHide() {
         pendingHideWorkItem?.cancel()
         pendingHideWorkItem = nil
+    }
+
+    private func debugLog(_ message: String) {
+        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("blablabla-debug.log")
+        let ts = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
+        let line = "[AppModel \(ts)] \(message)\n"
+        if let data = line.data(using: .utf8), let handle = try? FileHandle(forWritingTo: url) {
+            handle.seekToEndOfFile()
+            handle.write(data)
+            handle.closeFile()
+        }
     }
 }

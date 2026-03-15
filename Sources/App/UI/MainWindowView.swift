@@ -259,6 +259,76 @@ struct MainWindowView: View {
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.white)
 
+            // General
+            card {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("General")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Launch at login")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.7))
+                            Text("Start Blablabla automatically when you log in")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.3))
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { settings.launchAtLogin },
+                            set: { settings.launchAtLogin = $0 }
+                        ))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                    }
+
+                    Divider().opacity(0.3)
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Hide Dock icon")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.7))
+                            Text("Only show in the menu bar")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.3))
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { settings.hideDockIcon },
+                            set: { settings.hideDockIcon = $0 }
+                        ))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                    }
+
+                    Divider().opacity(0.3)
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Also copy to clipboard")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.7))
+                            Text("Keep transcript in clipboard as fallback after pasting")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.3))
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { settings.clipboardOnly },
+                            set: { settings.clipboardOnly = $0 }
+                        ))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                    }
+                }
+            }
+
             // API Key
             card {
                 VStack(alignment: .leading, spacing: 8) {
@@ -304,7 +374,7 @@ struct MainWindowView: View {
                         }
                     }
 
-                    Text("[Get a free API key at assemblyai.com](https://www.assemblyai.com/dashboard)")
+                    Text("[Get a free API key at assemblyai.com](https://assemblyai.cello.so/HaOXOkctY8l)")
                         .font(.system(size: 11))
                         .foregroundStyle(.white.opacity(0.3))
                 }

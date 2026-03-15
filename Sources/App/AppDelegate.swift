@@ -75,6 +75,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
+        settings.$hideDockIcon
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] hidden in
+                if hidden {
+                    NSApp.setActivationPolicy(.accessory)
+                } else {
+                    NSApp.setActivationPolicy(.regular)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                // Re-assert status item visibility after policy change
+                self?.statusItem.isVisible = true
+            }
+            .store(in: &cancellables)
+
         // Hide indicator immediately when recording ends (don't wait for delayed callback)
         model.$sessionState
             .dropFirst()
@@ -92,10 +107,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.regular)
+        configureStatusItem()
         shortcutMonitor.start()
         fnKeyMonitor?.start()
-        configureStatusItem()
+        NSApp.setActivationPolicy(model.settings.hideDockIcon ? .accessory : .regular)
         model.refreshPermissions()
         if !model.settings.showIndicatorOnlyWhenRecording {
             dockTabController.show()

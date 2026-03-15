@@ -1,5 +1,6 @@
 import Foundation
 import Carbon.HIToolbox
+import ServiceManagement
 
 @MainActor
 final class SettingsStore: ObservableObject {
@@ -65,6 +66,24 @@ final class SettingsStore: ObservableObject {
         }
     }
 
+    @Published var launchAtLogin: Bool {
+        didSet {
+            if launchAtLogin {
+                try? SMAppService.mainApp.register()
+            } else {
+                try? SMAppService.mainApp.unregister()
+            }
+        }
+    }
+
+    @Published var hideDockIcon: Bool {
+        didSet { userDefaults.set(hideDockIcon, forKey: Keys.hideDockIcon) }
+    }
+
+    @Published var clipboardOnly: Bool {
+        didSet { userDefaults.set(clipboardOnly, forKey: Keys.clipboardOnly) }
+    }
+
     private let userDefaults: UserDefaults
 
     init(userDefaults: UserDefaults = .standard) {
@@ -86,6 +105,9 @@ final class SettingsStore: ObservableObject {
         self.floatingPanelFreePosition = userDefaults.object(forKey: Keys.floatingPanelFreePosition) as? Bool ?? false
         self.floatingPanelX = userDefaults.object(forKey: Keys.floatingPanelX) as? Double
         self.floatingPanelY = userDefaults.object(forKey: Keys.floatingPanelY) as? Double
+        self.launchAtLogin = SMAppService.mainApp.status == .enabled
+        self.hideDockIcon = userDefaults.object(forKey: Keys.hideDockIcon) as? Bool ?? false
+        self.clipboardOnly = userDefaults.object(forKey: Keys.clipboardOnly) as? Bool ?? false
     }
 
     var shortcutModifierFlags: CGEventFlags {
@@ -125,4 +147,6 @@ private enum Keys {
     static let floatingPanelFreePosition = "settings.floatingPanelFreePosition"
     static let floatingPanelX = "settings.floatingPanelX"
     static let floatingPanelY = "settings.floatingPanelY"
+    static let hideDockIcon = "settings.hideDockIcon"
+    static let clipboardOnly = "settings.clipboardOnly"
 }

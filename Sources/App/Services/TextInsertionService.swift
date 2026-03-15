@@ -4,15 +4,46 @@ import Carbon.HIToolbox
 import Foundation
 
 final class TextInsertionService {
+    private let logFile: URL = {
+        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("blablabla-debug.log")
+        // Clear on launch
+        try? "".write(to: url, atomically: true, encoding: .utf8)
+        return url
+    }()
+
+    private func log(_ message: String) {
+        let ts = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
+        let line = "[\(ts)] \(message)\n"
+        if let data = line.data(using: .utf8), let handle = try? FileHandle(forWritingTo: logFile) {
+            handle.seekToEndOfFile()
+            handle.write(data)
+            handle.closeFile()
+        }
+    }
+
     func insert(_ text: String) -> Bool {
-        if let element = focusedElement(), isProbablyEditable(element) {
-            if insertViaAccessibility(text, into: element) {
-                return true
+        log("insert() called, text length=\(text.count)")
+
+        let element = focusedElement()
+        if let element {
+            let role = stringValue(attribute: kAXRoleAttribute as String, of: element) ?? "unknown"
+            let editable = isProbablyEditable(element)
+            log("Focused element: role=\(role), editable=\(editable)")
+
+            if editable {
+                if insertViaAccessibility(text, into: element) {
+                    log("SUCCESS via Accessibility API")
+                    return true
+                }
+                log("Accessibility insert FAILED, falling back to pasteboard")
             }
+        } else {
+            log("No focused element found")
         }
 
-        // Always fall back to pasteboard (Cmd+V) even if no editable element was found
-        return insertViaPasteboard(text)
+        let result = insertViaPasteboard(text)
+        log("insertViaPasteboard returned \(result)")
+        return result
     }
 
     private func focusedElement() -> AXUIElement? {
@@ -76,16 +107,32 @@ final class TextInsertionService {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 
-        let source = CGEventSource(stateID: .combinedSessionState)
-        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(kVK_ANSI_V), keyDown: true)
-        keyDown?.flags = .maskCommand
-        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(kVK_ANSI_V), keyDown: false)
-        keyUp?.flags = .maskCommand
+        // Use .privateState so physical keyboard state (e.g. shortcut modifiers
+        // still held) doesn't contaminate the synthetic Cmd+V.
+        let source = CGEventSource(stateID: .privateState)
+        guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(kVK_ANSI_V), keyDown: true),
+              let keyUp = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(kVK_ANSI_V), keyDown: false) else {
+            log("FAILED to create CGEvent for Cmd+V")
+            return false
+        }
+        keyDown.flags = .maskCommand
+        keyUp.flags = .maskCommand
 
-        keyDown?.post(tap: .cghidEventTap)
-        keyUp?.post(tap: .cghidEventTap)
+        // Send Cmd+V directly to the frontmost app's PID for reliable delivery
+        if let frontApp = NSWorkspace.shared.frontmostApplication {
+            let pid = frontApp.processIdentifier
+            log("Posting Cmd+V to PID \(pid) (\(frontApp.localizedName ?? "unknown"))")
+            keyDown.postToPid(pid)
+            usleep(30_000) // 30 ms gap so the app processes keyDown
+            keyUp.postToPid(pid)
+        } else {
+            log("No frontmost app, posting to HID tap")
+            keyDown.post(tap: .cghidEventTap)
+            usleep(30_000)
+            keyUp.post(tap: .cghidEventTap)
+        }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             pasteboard.clearContents()
             if let previousString {
                 pasteboard.setString(previousString, forType: .string)
