@@ -13,10 +13,14 @@ settings:
     CODE_SIGN_STYLE: Manual
     DEVELOPMENT_TEAM: ZC8MCRVRBP
     CODE_SIGN_IDENTITY: "Developer ID Application: Arturo García Jurado (ZC8MCRVRBP)"
-    CURRENT_PROJECT_VERSION: 8
-    MARKETING_VERSION: 0.3.0
+    CURRENT_PROJECT_VERSION: 9
+    MARKETING_VERSION: 0.4.0
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     ENABLE_APP_SANDBOX: NO
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.9.0
 targets:
   Blablabla:
     type: application
@@ -32,5 +36,7 @@ targets:
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "Developer ID Application: Arturo García Jurado (ZC8MCRVRBP)"
         ENABLE_HARDENED_RUNTIME: YES
+    dependencies:
+      - package: Sparkle
     scheme:
       testTargets: []

@@ -75,21 +75,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
-        settings.$hideDockIcon
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] hidden in
-                if hidden {
-                    NSApp.setActivationPolicy(.accessory)
-                } else {
-                    NSApp.setActivationPolicy(.regular)
-                    NSApp.activate(ignoringOtherApps: true)
-                }
-                // Re-assert status item visibility after policy change
-                self?.statusItem.isVisible = true
-            }
-            .store(in: &cancellables)
-
         // Hide indicator immediately when recording ends (don't wait for delayed callback)
         model.$sessionState
             .dropFirst()
@@ -107,15 +92,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        configureStatusItem()
+        applyActivationPolicy()
         shortcutMonitor.start()
         fnKeyMonitor?.start()
-        NSApp.setActivationPolicy(model.settings.hideDockIcon ? .accessory : .regular)
         model.refreshPermissions()
         if !model.settings.showIndicatorOnlyWhenRecording {
             dockTabController.show()
         }
         presentMainWindow()
+
+        // Delay status item creation so macOS menu bar is fully initialized
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.configureStatusItem()
+        }
+
+        model.settings.$hideDockIcon
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.applyActivationPolicy()
+                // Status item can be invalidated by the policy change;
+                // re-create it on the next run-loop tick.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    self?.configureStatusItem()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    private func applyActivationPolicy() {
+        NSApp.setActivationPolicy(model.settings.hideDockIcon ? .accessory : .regular)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -129,8 +135,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func configureStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "Blablabla")
-        statusItem.button?.imagePosition = .imageOnly
+        statusItem.isVisible = true
+        let image = NSImage(systemSymbolName: "waveform.circle", accessibilityDescription: "Blablabla")
+        statusItem.button?.image = image
+        statusItem.button?.imagePosition = .imageLeading
+        statusItem.button?.title = "B"
 
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Show Transcripts", action: #selector(showMainWindowFromMenu), keyEquivalent: ""))
@@ -139,6 +148,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "Quit Blablabla", action: #selector(quitApplication), keyEquivalent: "q"))
         menu.items.forEach { $0.target = self }
         statusItem.menu = menu
+
+        // Delayed diagnostic to check final window position
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self else { return }
+            let frame = self.statusItem.button?.frame ?? .zero
+            let vis = self.statusItem.isVisible
+            let winFrame = self.statusItem.button?.window?.frame ?? .zero
+            let info = "visible=\(vis), buttonFrame=\(frame), windowFrame=\(winFrame)"
+            try? info.write(toFile: "/tmp/blablabla-statusitem-debug.txt", atomically: true, encoding: .utf8)
+        }
     }
 
     private func rebuildFnKeyMonitor(enabled: Bool? = nil) {

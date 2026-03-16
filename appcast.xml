@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Blablabla Updates</title>
+        <link>https://github.com/arturogj92/blablabla</link>
+        <description>Automatic updates for Blablabla</description>
+        <language>en</language>
+
+        <item>
+            <title>Version 0.4.0</title>
+            <description><![CDATA[
+<h2>What's New</h2>
+<p>Add auto-update with Sparkle</p>
+            ]]></description>
+            <pubDate>Mon, 16 Mar 2026 17:30:00 +0100</pubDate>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/arturogj92/blablabla/releases/download/v0.4.0/Blablabla-v0.4.0-macOS.zip"
+                sparkle:version="9"
+                sparkle:shortVersionString="0.4.0"
+                length="3245385"
+                type="application/octet-stream"
+            />
+        </item>
+
+        <item>
+            <title>Version 0.3.0</title>
+            <description><![CDATA[
+<h2>What's New</h2>
+<ul>
+    <li>Clipboard fallback</li>
+    <li>Launch at login</li>
+    <li>Hide dock icon</li>
+    <li>Fix text insertion</li>
+</ul>
+            ]]></description>
+            <pubDate>Mon, 16 Mar 2026 17:00:00 +0100</pubDate>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/arturogj92/blablabla/releases/download/v0.3.0/Blablabla-v0.3.0-macOS.zip"
+                sparkle:version="8"
+                sparkle:shortVersionString="0.3.0"
+                length="0"
+                type="application/octet-stream"
+            />
+        </item>
+    </channel>
+</rss>

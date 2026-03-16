@@ -1,9 +1,10 @@
 import AppKit
+import Sparkle
 import SwiftUI
 
 final class MainWindowController: NSWindowController {
-    init(model: AppModel) {
-        let hostingView = NSHostingView(rootView: MainWindowView(model: model, settings: model.settings))
+    init(model: AppModel, updater: SPUUpdater) {
+        let hostingView = NSHostingView(rootView: MainWindowView(model: model, settings: model.settings, updater: updater))
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 720, height: 760),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
