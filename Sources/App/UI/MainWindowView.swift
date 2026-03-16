@@ -196,10 +196,12 @@ struct MainWindowView: View {
                     .padding(.vertical, 7)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .fill(isSelected ? .white.opacity(0.08) : .clear)
             )
+            .contentShape(Rectangle())
             .foregroundStyle(isSelected ? .white : .white.opacity(0.45))
         }
         .buttonStyle(.plain)
