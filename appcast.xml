@@ -7,6 +7,23 @@
         <description>Automatic updates for Blablabla</description>
         <language>en</language>
         <item>
+            <title>Version 0.4.3</title>
+            <description><![CDATA[
+<h2>What's New</h2>
+<p>Add EdDSA signing for secure auto-updates</p>
+            ]]></description>
+            <pubDate>Wed, 18 Mar 2026 17:07:43 +0100</pubDate>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/arturogj92/blablabla/releases/download/v0.4.3/Blablabla-v0.4.3-macOS.zip"
+                sparkle:edSignature="l21fKQUhJy/qT0ZGuE9+BYU91AL6AkTXSC8Q4rzCUawSrg5KCbSsaV8eebBj4j1cG7yVBXGTqgS4yvBl04v0Bw=="
+                sparkle:version="12"
+                sparkle:shortVersionString="0.4.3"
+                length="3246175"
+                type="application/octet-stream"
+            />
+        </item>
+        <item>
             <title>Version 0.4.2</title>
             <description><![CDATA[
 <h2>What's New</h2>
@@ -16,6 +33,7 @@
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <enclosure
                 url="https://github.com/arturogj92/blablabla/releases/download/v0.4.2/Blablabla-v0.4.2-macOS.zip"
+                sparkle:edSignature="t7w76Ijt4KCDmGHiPKiohZK81Jq92W85b2wmzH5QBON8z7J8/nYf04Iig9z2JZ5b4ikXlPEjpUn70bAlLZUQBw=="
                 sparkle:version="11"
                 sparkle:shortVersionString="0.4.2"
                 length="3246126"
@@ -32,6 +50,7 @@
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <enclosure
                 url="https://github.com/arturogj92/blablabla/releases/download/v0.4.1/Blablabla-v0.4.1-macOS.zip"
+                sparkle:edSignature="t/Saw0KvxNMDhb6aP+PbwQxw9/3vmd1zmnyl+NddNZL1JUtI8DyTEr9cv1+ymj3sdKM/BFsRJmE2ilAL9cmHAA=="
                 sparkle:version="10"
                 sparkle:shortVersionString="0.4.1"
                 length="3245395"
@@ -49,6 +68,7 @@
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <enclosure
                 url="https://github.com/arturogj92/blablabla/releases/download/v0.4.0/Blablabla-v0.4.0-macOS.zip"
+                sparkle:edSignature="kZRykpWsRxecdIEnXeqOzXKVC90vUrM7jCdAiTxbrK+5TxXKRsA9bdClhfEuigU8V8l9FFog5Nuz6nws5vPgCw=="
                 sparkle:version="9"
                 sparkle:shortVersionString="0.4.0"
                 length="3245385"
