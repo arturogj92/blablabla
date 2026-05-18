@@ -10,6 +10,9 @@ Blablabla.xcodeproj/
 # Release artifacts
 release/
 
+# Local-only release script (contains secrets)
+scripts/release.sh
+
 # IDE
 .vscode/
 .idea/
