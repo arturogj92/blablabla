@@ -7,6 +7,23 @@
         <description>Automatic updates for Blablabla</description>
         <language>en</language>
         <item>
+            <title>Version 0.4.4</title>
+            <description><![CDATA[
+<h2>What's New</h2>
+<p>Re-release with verified signing and notarization</p>
+            ]]></description>
+            <pubDate>Mon, 18 May 2026 19:07:57 +0200</pubDate>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/arturogj92/blablabla/releases/download/v0.4.4/Blablabla-v0.4.4-macOS.zip"
+                sparkle:edSignature="kkELy96aI1FnuYWNpUc738rGUF9Uc0CL4CiYl90zPmwjR97uBujtZf3BbVk2kTwPB8kh3fw6KFbq3KKXr8E0Bw=="
+                sparkle:version="13"
+                sparkle:shortVersionString="0.4.4"
+                length="3246242"
+                type="application/octet-stream"
+            />
+        </item>
+        <item>
             <title>Version 0.4.3</title>
             <description><![CDATA[
 <h2>What's New</h2>
