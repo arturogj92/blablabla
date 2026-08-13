@@ -16,10 +16,10 @@
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <enclosure
                 url="https://github.com/arturogj92/blablabla/releases/download/v0.4.4/Blablabla-v0.4.4-macOS.zip"
-                sparkle:edSignature="kkELy96aI1FnuYWNpUc738rGUF9Uc0CL4CiYl90zPmwjR97uBujtZf3BbVk2kTwPB8kh3fw6KFbq3KKXr8E0Bw=="
+                sparkle:edSignature="LhFXWFFaerbGezAzKDNblz1wQW6sRi4heHj9wuka+Uw6pBuK863WndgZLRx2VE8AMh28AD07/J0BqaEU046GAQ=="
                 sparkle:version="13"
                 sparkle:shortVersionString="0.4.4"
-                length="3246242"
+                length="3196896"
                 type="application/octet-stream"
             />
         </item>
